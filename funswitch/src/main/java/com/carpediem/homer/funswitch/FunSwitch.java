@@ -74,16 +74,12 @@ public class FunSwitch extends View {
 
         if (mIsAnimationOn) {
             mPaint.setColor(0xffffffff);
-            final float scale = 0.98f * (1f -mAnimationCount);
+            float scale = getScaleValue();
             canvas.save();
             canvas.scale(scale,scale,sCenterX,sCenterY);
             canvas.drawPath(sPath,mPaint);
             canvas.restore();
-            if (mAnimationCount >0) {
-                mAnimationCount -= 0.1f;
-                Log.e("TEST","call invalidate"+ mAnimationCount);
-                invalidate();
-            }
+            stepNextAnimationIfNeed();
         }
         mPaint.reset();
     }
@@ -96,11 +92,25 @@ public class FunSwitch extends View {
             case MotionEvent.ACTION_CANCEL:
                 break;
             case MotionEvent.ACTION_UP:
-                mAnimationCount = 1f;
-                mIsAnimationOn = true;
-                invalidate();
+                startAnimation();
                 break;
         }
         return super.onTouchEvent(event);
+    }
+
+    private void startAnimation() {
+        mAnimationCount = 1f;
+        mIsAnimationOn = true;
+        invalidate();
+    }
+    private float getScaleValue() {
+        return 0.98f * (1f -mAnimationCount);
+    }
+    private void stepNextAnimationIfNeed() {
+        if (mAnimationCount >0) {
+            mAnimationCount -= 0.1f;
+            Log.e("TEST","call invalidate"+ mAnimationCount);
+            invalidate();
+        }
     }
 }
