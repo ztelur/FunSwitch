@@ -10,6 +10,6 @@
     tools:context="com.carpediem.homer.demo.MainActivity">
 
     <com.carpediem.homer.funswitch.FunSwitch
-        android:layout_width="100dp"
-        android:layout_height="100dp"/>
+        android:layout_width="200dp"
+        android:layout_height="200dp"/>
 </RelativeLayout>
