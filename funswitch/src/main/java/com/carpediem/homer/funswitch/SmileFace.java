@@ -29,6 +29,7 @@ public class SmileFace {
     }
 
     public void draw(Canvas canvas) {
+        mPaint.setAntiAlias(true);
         //面部背景
         mPaint.setColor(mFaceColor);
         mPaint.setStyle(Paint.Style.FILL);
@@ -37,7 +38,7 @@ public class SmileFace {
         // 双眼
         float eyeRectWidth = mFaceRadius * 0.2f;
         float eyeRectHeight = mFaceRadius * 0.5f;
-        float eyeOffSet = mFaceRadius * 0.3f;
+        float eyeOffSet = mFaceRadius * 0.15f;
         float eyeLeft = mCenterX - eyeOffSet - eyeRectWidth;
         float eyeTop = mCenterY - eyeOffSet - eyeRectHeight;
 

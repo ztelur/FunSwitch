@@ -18,6 +18,7 @@ public class FunSwitch extends View {
     private float mHeight;
 
     private Path mBackgroundPath;
+    private SmileFace mForeground;
 
     //paint
     private Paint mPaint;
@@ -69,12 +70,15 @@ public class FunSwitch extends View {
         mBackgroundPath.arcTo(backgroundRecf,270,180);
         mBackgroundPath.close();
 
+        float radius = (bottom / 2) * 0.98f;
+        mForeground = new SmileFace(top+bottom/2,left+bottom/2,radius);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         drawBackground(canvas);
+        drawForeground(canvas);
     }
 
     private void drawBackground(Canvas canvas) {
@@ -84,6 +88,9 @@ public class FunSwitch extends View {
         mPaint.reset();
     }
     private void drawForeground(Canvas canvas) {
-
+        if (mForeground == null) {
+            return;
+        }
+        mForeground.draw(canvas);
     }
 }
