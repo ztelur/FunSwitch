@@ -1,17 +1,20 @@
 package com.carpediem.homer.funswitch;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 /**
  * Created by homer on 16-6-11.
  */
-public class FunSwitch extends View {
+public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListener{
     private final static float DEFAULT_WIDTH_HEIGHT_PERCENT = 0.65f;
     private float mWidthAndHeightPercent ;
     private float mWidth;
@@ -24,6 +27,10 @@ public class FunSwitch extends View {
     private Paint mPaint;
     private int mOnBackgroundColor = 0xffcccccc;
     private int mOffBackgroundColor = 0xffcfcfff;
+
+    // animation
+    private ValueAnimator mValueAnimator;
+
     public FunSwitch(Context context) {
         super(context);
         init(context);
@@ -92,5 +99,34 @@ public class FunSwitch extends View {
             return;
         }
         mForeground.draw(canvas);
+    }
+
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.e("TEST","onTouchEvent");
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                break;
+            case MotionEvent.ACTION_UP:
+                startAnimation();
+                return true;
+        }
+        return super.onTouchEvent(event);
+    }
+    private void startAnimation() {
+        Log.e("TEST","startAnimation");
+        mValueAnimator = ValueAnimator.ofFloat(0.0f,360.0f);
+        mValueAnimator.addUpdateListener(this);
+        mValueAnimator.start();
+
+    }
+
+    @Override
+    public void onAnimationUpdate(ValueAnimator animation) {
+        Log.e("TEST",animation.getAnimatedValue()+" ");
+        setRotation((Float) animation.getAnimatedValue());
     }
 }
