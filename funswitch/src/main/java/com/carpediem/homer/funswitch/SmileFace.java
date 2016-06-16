@@ -28,37 +28,5 @@ public class SmileFace {
         mEyeAndMouthColor = color;
     }
 
-    public void draw(Canvas canvas) {
-        mPaint.setAntiAlias(true);
-        //面部背景
-        mPaint.setColor(mFaceColor);
-        mPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(mCenterX,mCenterY,mFaceRadius,mPaint);
 
-        // 双眼
-        float eyeRectWidth = mFaceRadius * 0.2f;
-        float eyeRectHeight = mFaceRadius * 0.5f;
-        float eyeOffSet = mFaceRadius * 0.15f;
-        float eyeLeft = mCenterX - eyeOffSet - eyeRectWidth;
-        float eyeTop = mCenterY - eyeOffSet - eyeRectHeight;
-
-        RectF leftEye = new RectF(eyeLeft,eyeTop,eyeLeft+eyeRectWidth,eyeTop+eyeRectHeight);
-
-        eyeLeft = mCenterX + eyeOffSet;
-        RectF rightEye = new RectF(eyeLeft,eyeTop,eyeLeft + eyeRectWidth,eyeTop + eyeRectHeight);
-
-        mPaint.setColor(mEyeAndMouthColor);
-        mPaint.setStyle(Paint.Style.FILL);
-        canvas.drawOval(leftEye,mPaint);
-        canvas.drawOval(rightEye,mPaint);
-        //嘴巴
-
-        float mouthWidth = ( eyeRectWidth + eyeOffSet) * 2; //嘴的长度正好和双眼之间的距离一样
-        float mouthHeight = (mFaceRadius * 0.05f);
-        float mouthLeft = mCenterX - mouthWidth/2;
-        float mouthTop = mCenterY + eyeOffSet;
-        canvas.drawRect(mouthLeft,mouthTop,mouthLeft+mouthWidth,mouthTop+mouthHeight,mPaint);
-
-
-    }
 }
