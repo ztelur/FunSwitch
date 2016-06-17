@@ -1,5 +1,6 @@
 package com.carpediem.homer.funswitch;
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -14,7 +15,7 @@ import android.view.View;
 /**
  * Created by homer on 16-6-11.
  */
-public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListener{
+public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListener,ValueAnimator.AnimatorListener{
     private final static float DEFAULT_WIDTH_HEIGHT_PERCENT = 0.65f;
     private final static float FACE_ANIM_MAX_FRACTION = 1.4f;
     private final static float NORMAL_ANIM_MAX_FRACTION = 1.0f;
@@ -40,6 +41,9 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private float mFaceRadius;
     private float mCenterX;
     private float mCenterY;
+
+    private boolean mIsOpen = false;
+    private boolean mIsDuringAnimation = false;
     public FunSwitch(Context context) {
         super(context);
         init(context);
@@ -153,36 +157,68 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     }
 
     private void drawEye(Canvas canvas,float fraction) {
+
+        float scale;
+        float startValue = 1.2f;
+        float middleValue = (startValue + FACE_ANIM_MAX_FRACTION) /2; //1.3
+        if (fraction >= startValue && fraction <= middleValue) {
+            scale = (middleValue - fraction) * 10; //0.4f是最小缩放比
+        } else if (fraction > middleValue && fraction <= FACE_ANIM_MAX_FRACTION) {
+            scale = (fraction - middleValue) * 10 ;
+        } else {
+            scale = 1.0f;
+        }
+
         // 双眼
-        float eyeRectWidth = mFaceRadius * 0.2f;
-        float eyeRectHeight = mFaceRadius * 0.5f;
+        Log.e("SACLE","scale is "+scale);
+        float eyeRectWidth = mFaceRadius * 0.2f ;
+        float eyeRectHeight = mFaceRadius * 0.3f;
         float eyeOffSet = mFaceRadius * 0.15f;
-        float eyeLeft = mCenterX - eyeOffSet - eyeRectWidth;
-        float eyeTop = mCenterY - eyeOffSet - eyeRectHeight;
+        float leftEyeCenterX = mCenterX - eyeOffSet - eyeRectWidth/2;
+        float leftEyeCenterY = mCenterY - eyeOffSet - eyeRectHeight/2;
+        float rightEyeCenterX = mCenterX + eyeOffSet + eyeRectWidth/2;
 
-        RectF leftEye = new RectF(eyeLeft,eyeTop,eyeLeft+eyeRectWidth,eyeTop+eyeRectHeight);
+        eyeRectHeight *= scale; //眨眼缩放
+        float eyeLeft = leftEyeCenterX - eyeRectWidth/2 ;
+        float eyeTop = leftEyeCenterY - eyeRectHeight/2;
+        float eyeRight = leftEyeCenterX + eyeRectWidth/2;
+        float eyeBottom = leftEyeCenterY + eyeRectHeight/2;
 
-        eyeLeft = mCenterX + eyeOffSet;
-        RectF rightEye = new RectF(eyeLeft,eyeTop,eyeLeft + eyeRectWidth,eyeTop + eyeRectHeight);
+        RectF leftEye = new RectF(eyeLeft,eyeTop,eyeRight,eyeBottom);
+
+        eyeLeft = rightEyeCenterX - eyeRectWidth/2;
+        eyeRight = rightEyeCenterX + eyeRectWidth/2;
+
+        RectF rightEye = new RectF(eyeLeft,eyeTop,eyeRight,eyeBottom);
 
         mPaint.setColor(mEyeAndMouthColor);
         mPaint.setStyle(Paint.Style.FILL);
+        //眨眼动画
 
         canvas.drawOval(leftEye,mPaint);
         canvas.drawOval(rightEye,mPaint);
     }
     private void drawMouth(Canvas canvas,float fraction) {
-        // 双眼
+        //TODO:使用贝塞尔曲线来画嘴
         float eyeRectWidth = mFaceRadius * 0.2f;
         float eyeOffSet = mFaceRadius * 0.15f;
+        float mouthWidth = (eyeRectWidth + eyeOffSet) * 2; //嘴的长度正好和双眼之间的距离一样
+        float mouthHeight = (mFaceRadius * 0.05f);
+        float mouthLeft = mCenterX - mouthWidth / 2;
+        float mouthTop = mCenterY + eyeOffSet;
 
         //嘴巴
-
-        float mouthWidth = ( eyeRectWidth + eyeOffSet) * 2; //嘴的长度正好和双眼之间的距离一样
-        float mouthHeight = (mFaceRadius * 0.05f);
-        float mouthLeft = mCenterX - mouthWidth/2;
-        float mouthTop = mCenterY + eyeOffSet;
-        canvas.drawRect(mouthLeft,mouthTop,mouthLeft+mouthWidth,mouthTop+mouthHeight,mPaint);
+        if (fraction <=0.75) { //
+            canvas.drawRect(mouthLeft, mouthTop, mouthLeft + mouthWidth, mouthTop + mouthHeight, mPaint);
+        } else {
+            Path path = new Path();
+            path.moveTo(mouthLeft,mouthTop);
+            float controlX = mouthLeft + mouthWidth/2;
+            float controlY = mouthTop + mouthHeight + mouthHeight * 10 * fraction;
+            path.quadTo(controlX,controlY,mouthLeft+mouthWidth,mouthTop);
+            path.close();
+            canvas.drawPath(path,mPaint);
+        }
     }
 
     private float getForegroundTransitionValue() {
@@ -197,16 +233,33 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
             case MotionEvent.ACTION_CANCEL:
                 break;
             case MotionEvent.ACTION_UP:
-                startAnimation();
+                if (mIsDuringAnimation) {
+                    return true;
+                }
+                if (mIsOpen) {
+                    startCloseAnimation();
+                    mIsOpen = false;
+                } else {
+                    startOpenAnimation();
+                    mIsOpen = true;
+                }
                 return true;
         }
         return super.onTouchEvent(event);
     }
-    private void startAnimation() {
-        Log.e("TEST","startAnimation");
+    private void startOpenAnimation() {
         mValueAnimator = ValueAnimator.ofFloat(0.0f, FACE_ANIM_MAX_FRACTION);
         mValueAnimator.setDuration(1000);
         mValueAnimator.addUpdateListener(this);
+        mValueAnimator.addListener(this);
+        mValueAnimator.start();
+
+    }
+    private void startCloseAnimation() {
+        mValueAnimator = ValueAnimator.ofFloat(NORMAL_ANIM_MAX_FRACTION,0);
+        mValueAnimator.setDuration(1000);
+        mValueAnimator.addUpdateListener(this);
+        mValueAnimator.addListener(this);
         mValueAnimator.start();
     }
 
@@ -215,5 +268,26 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
         Log.e("TEST",animation.getAnimatedValue()+" ");
         mAnimationFraction = (float)animation.getAnimatedValue();
         invalidate();
+
+    }
+
+    @Override
+    public void onAnimationStart(Animator animation) {
+        mIsDuringAnimation = true;
+    }
+
+    @Override
+    public void onAnimationEnd(Animator animation) {
+        mIsDuringAnimation = false;
+    }
+
+    @Override
+    public void onAnimationCancel(Animator animation) {
+        mIsDuringAnimation = false;
+    }
+
+    @Override
+    public void onAnimationRepeat(Animator animation) {
+        mIsDuringAnimation = true;
     }
 }
