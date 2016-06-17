@@ -45,7 +45,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private boolean mIsOpen = false;
     private boolean mIsDuringAnimation = false;
 
-    private long mOnAnimationDuration = 1000L;
+    private long mOnAnimationDuration = 800L;
     private long mOffAnimationDuration = (long)(mOnAnimationDuration * NORMAL_ANIM_MAX_FRACTION / FACE_ANIM_MAX_FRACTION);
 
     public FunSwitch(Context context) {
@@ -175,12 +175,13 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
 
         // 双眼
         Log.e("SACLE","scale is "+scale);
-        float eyeRectWidth = mFaceRadius * 0.2f ;
-        float eyeRectHeight = mFaceRadius * 0.3f;
-        float eyeOffSet = mFaceRadius * 0.15f;
-        float leftEyeCenterX = mCenterX - eyeOffSet - eyeRectWidth/2;
-        float leftEyeCenterY = mCenterY - eyeOffSet - eyeRectHeight/2;
-        float rightEyeCenterX = mCenterX + eyeOffSet + eyeRectWidth/2;
+        float eyeRectWidth = mFaceRadius * 0.25f ;
+        float eyeRectHeight = mFaceRadius * 0.35f;
+        float eyeXOffSet = mFaceRadius * 0.14f;
+        float eyeYOffSet = mFaceRadius * 0.12f;
+        float leftEyeCenterX = mCenterX - eyeXOffSet - eyeRectWidth/2;
+        float leftEyeCenterY = mCenterY - eyeYOffSet - eyeRectHeight/2;
+        float rightEyeCenterX = mCenterX + eyeXOffSet + eyeRectWidth/2;
 
         eyeRectHeight *= scale; //眨眼缩放
         float eyeLeft = leftEyeCenterX - eyeRectWidth/2 ;
@@ -205,11 +206,12 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private void drawMouth(Canvas canvas,float fraction) {
         //TODO:使用贝塞尔曲线来画嘴
         float eyeRectWidth = mFaceRadius * 0.2f;
-        float eyeOffSet = mFaceRadius * 0.15f;
-        float mouthWidth = (eyeRectWidth + eyeOffSet) * 2; //嘴的长度正好和双眼之间的距离一样
+        float eyeXOffSet = mFaceRadius * 0.14f;
+        float eyeYOffSet = mFaceRadius * 0.21f;
+        float mouthWidth = (eyeRectWidth + eyeXOffSet) * 2; //嘴的长度正好和双眼之间的距离一样
         float mouthHeight = (mFaceRadius * 0.05f);
         float mouthLeft = mCenterX - mouthWidth / 2;
-        float mouthTop = mCenterY + eyeOffSet;
+        float mouthTop = mCenterY + eyeYOffSet; // mCenterY是face的原点
 
         //嘴巴
         if (fraction <=0.75) { //
@@ -218,7 +220,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
             Path path = new Path();
             path.moveTo(mouthLeft,mouthTop);
             float controlX = mouthLeft + mouthWidth/2;
-            float controlY = mouthTop + mouthHeight + mouthHeight * 10 * fraction;
+            float controlY = mouthTop + mouthHeight + mouthHeight * 15 * (fraction - 0.75f);
             path.quadTo(controlX,controlY,mouthLeft+mouthWidth,mouthTop);
             path.close();
             canvas.drawPath(path,mPaint);
