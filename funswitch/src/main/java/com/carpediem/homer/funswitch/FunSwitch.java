@@ -1,6 +1,7 @@
 package com.carpediem.homer.funswitch;
 
 import android.animation.Animator;
+import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -27,16 +28,15 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private Path mFacePath;
 
     //paint
-    private int mOnBackgroundColor = 0xffcccccc;
-    private int mOffBackgroundColor = 0xffcfcfff;
-
+    private int mOffBackgroundColor = 0xffcccccc;
+    private int mOnBackgroundColor = 0xff33ccff;
+    private int mCurrentColor = mOffBackgroundColor;
     // animation
     private ValueAnimator mValueAnimator;
     private float mAnimationFraction = 0.0f;
 
 
     private int mFaceColor = 0xffffffff;
-    private int mEyeAndMouthColor = 0xffcccc00;
     private Paint mPaint;
     private float mFaceRadius;
     private float mCenterX;
@@ -44,6 +44,10 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
 
     private boolean mIsOpen = false;
     private boolean mIsDuringAnimation = false;
+
+    private long mOnAnimationDuration = 1000L;
+    private long mOffAnimationDuration = (long)(mOnAnimationDuration * NORMAL_ANIM_MAX_FRACTION / FACE_ANIM_MAX_FRACTION);
+
     public FunSwitch(Context context) {
         super(context);
         init(context);
@@ -112,7 +116,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     }
 
     private void drawBackground(Canvas canvas) {
-        mPaint.setColor(mOnBackgroundColor);
+        mPaint.setColor(mCurrentColor);
         mPaint.setStyle(Paint.Style.FILL);
         canvas.drawPath(mBackgroundPath,mPaint);
         mPaint.reset();
@@ -191,7 +195,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
 
         RectF rightEye = new RectF(eyeLeft,eyeTop,eyeRight,eyeBottom);
 
-        mPaint.setColor(mEyeAndMouthColor);
+        mPaint.setColor(mCurrentColor);
         mPaint.setStyle(Paint.Style.FILL);
         //眨眼动画
 
@@ -249,20 +253,38 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     }
     private void startOpenAnimation() {
         mValueAnimator = ValueAnimator.ofFloat(0.0f, FACE_ANIM_MAX_FRACTION);
-        mValueAnimator.setDuration(1000);
+        mValueAnimator.setDuration(mOnAnimationDuration);
         mValueAnimator.addUpdateListener(this);
         mValueAnimator.addListener(this);
         mValueAnimator.start();
+        startColorAnimation();
 
     }
     private void startCloseAnimation() {
         mValueAnimator = ValueAnimator.ofFloat(NORMAL_ANIM_MAX_FRACTION,0);
-        mValueAnimator.setDuration(1000);
+        mValueAnimator.setDuration(mOffAnimationDuration);
         mValueAnimator.addUpdateListener(this);
         mValueAnimator.addListener(this);
         mValueAnimator.start();
+        startColorAnimation();
     }
+    private void startColorAnimation() {
+        int colorFrom = mIsOpen?mOnBackgroundColor:mOffBackgroundColor; //mIsOpen为true则表示要启动关闭的动画
+        int colorTo = mIsOpen? mOffBackgroundColor:mOnBackgroundColor;
+        long duration = mIsOpen? mOffAnimationDuration:mOnAnimationDuration;
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.setDuration(duration); // milliseconds
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                mCurrentColor = (int)animator.getAnimatedValue();
+            }
+
+        });
+        colorAnimation.start();
+
+    }
     @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         Log.e("TEST",animation.getAnimatedValue()+" ");
