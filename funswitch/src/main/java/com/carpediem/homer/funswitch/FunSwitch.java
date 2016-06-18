@@ -8,6 +8,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -23,6 +25,10 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private float mWidthAndHeightPercent ;
     private float mWidth;
     private float mHeight;
+    private float mPaddingLeft;
+    private float mPaddingTop;
+    private float mPaddingBottom;
+    private float mPaddingRight;
     private float mTransitionLength;
     private Path mBackgroundPath;
     private Path mFacePath;
@@ -65,6 +71,9 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private void init(Context context) {
         mWidthAndHeightPercent = DEFAULT_WIDTH_HEIGHT_PERCENT;
         mPaint = new Paint();
+        setState(false);
+        // TODO: View ID 和 setSavedEnable都很重要的。
+        setSaveEnabled(true);
     }
 
     @Override
@@ -85,6 +94,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
         float left = 0;
         float bottom = h*0.8f; //下边预留0.2空间来画阴影
         float right = w;
+
         RectF backgroundRecf = new RectF(left,top,bottom,bottom);
         mBackgroundPath = new Path();
         //TODO:???????????
@@ -228,7 +238,22 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     }
 
     private float getForegroundTransitionValue() {
-        return  mAnimationFraction <= NORMAL_ANIM_MAX_FRACTION ? mAnimationFraction * mTransitionLength: mTransitionLength;
+        float result;
+        if (mIsOpen) {
+            if (mIsDuringAnimation) {
+                result = mAnimationFraction > NORMAL_ANIM_MAX_FRACTION ?
+                        mTransitionLength : mTransitionLength * mAnimationFraction;
+            } else {
+                result = mTransitionLength;
+            }
+        } else {
+            if (mIsDuringAnimation) {
+                result = mTransitionLength * mAnimationFraction;
+            } else {
+                result = 0;
+            }
+        }
+        return result;
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -313,5 +338,63 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     @Override
     public void onAnimationRepeat(Animator animation) {
         mIsDuringAnimation = true;
+    }
+
+    public void setState(boolean open) {
+        mIsOpen = open;
+        refreshState();
+    }
+    public void refreshState() {
+        mCurrentColor = mIsOpen ? mOnBackgroundColor : mOffBackgroundColor;
+        invalidate();
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Log.e("TEST","onSave");
+        Parcelable superState =  super.onSaveInstanceState();
+        SavedState ss = new SavedState(superState);
+        ss.isOpen = mIsOpen ? 1:0;
+        return ss;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        Log.e("TEST","onRestore");
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(state);
+        boolean result = ss.isOpen == 1;
+        setState(result);
+    }
+
+    static class SavedState extends BaseSavedState {
+        int isOpen;
+
+        public SavedState(Parcel source) {
+            super(source);
+            isOpen = source.readInt();
+        }
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(isOpen);
+        }
+        public static final Parcelable.Creator<SavedState> CREATOR
+                = new Parcelable.Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[0];
+            }
+        };
     }
 }
