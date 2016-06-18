@@ -10,11 +10,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.carpediem.homer.demo.MainActivity">
 
-    <com.carpediem.homer.funswitch.IOSSwitch
-        android:layout_width="200dp"
-        android:layout_height="200dp"/>
     <com.carpediem.homer.funswitch.FunSwitch
         android:id="@+id/switchButton"
         android:layout_width="200dp"
         android:layout_height="200dp"/>
+    <com.carpediem.homer.funswitch.FunSwitch
+        android:id="@+id/switchButton2"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
 </LinearLayout>

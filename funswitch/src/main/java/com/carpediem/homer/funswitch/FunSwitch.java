@@ -14,6 +14,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Interpolator;
 
 /**
  * Created by homer on 16-6-11.
@@ -39,6 +41,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private int mCurrentColor = mOffBackgroundColor;
     // animation
     private ValueAnimator mValueAnimator;
+    private Interpolator mInterpolator = new AccelerateDecelerateInterpolator();
     private float mAnimationFraction = 0.0f;
 
 
@@ -51,7 +54,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
     private boolean mIsOpen = false;
     private boolean mIsDuringAnimation = false;
 
-    private long mOnAnimationDuration = 800L;
+    private long mOnAnimationDuration = 850L;
     private long mOffAnimationDuration = (long)(mOnAnimationDuration * NORMAL_ANIM_MAX_FRACTION / FACE_ANIM_MAX_FRACTION);
 
     public FunSwitch(Context context) {
@@ -283,6 +286,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
         mValueAnimator.setDuration(mOnAnimationDuration);
         mValueAnimator.addUpdateListener(this);
         mValueAnimator.addListener(this);
+        mValueAnimator.setInterpolator(mInterpolator);
         mValueAnimator.start();
         startColorAnimation();
 
@@ -292,6 +296,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
         mValueAnimator.setDuration(mOffAnimationDuration);
         mValueAnimator.addUpdateListener(this);
         mValueAnimator.addListener(this);
+        mValueAnimator.setInterpolator(mInterpolator);
         mValueAnimator.start();
         startColorAnimation();
     }
@@ -300,6 +305,7 @@ public class FunSwitch extends View implements ValueAnimator.AnimatorUpdateListe
         int colorTo = mIsOpen? mOffBackgroundColor:mOnBackgroundColor;
         long duration = mIsOpen? mOffAnimationDuration:mOnAnimationDuration;
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.setInterpolator(mInterpolator);
         colorAnimation.setDuration(duration); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
